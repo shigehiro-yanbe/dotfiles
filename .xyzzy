@@ -1,0 +1,255 @@
+;;; カレントディレクトリの移動？
+(cd "~/")
+
+
+;; デフォルト文字コードと改行コード
+(setq *default-fileio-encoding* *encoding-utf8n*)
+;(setq *default-eol-code* *eol-lf*)
+
+
+;; howm
+(pushnew (merge-pathnames "site-lisp/howm/" (si:system-root))
+             *load-path* :test #'string-equal)
+(require "howm-wrap")
+;; `howm-init.l' をコピーしてない場合、以下を有効に。
+;; 日本語メニューを使う。
+;(setq elisp-lib::howm-menu-lang 'elisp-lib::ja)
+
+
+; キーバインドをWindowsと同じに 
+	(load-library "winkey")
+
+
+; ruby-mode
+(load-library "ruby-mode")
+(push '("\\.rb$" . ruby-mode) *auto-mode-alist*)
+(add-hook '*ruby-mode-hook* #'(lambda () (set-tab-columns 2 (selected-buffer))))
+
+
+;; C-o , C-\ (IME起動)
+(global-set-key #\C-o 'toggle-ime)
+;(global-set-key #\C-\\ 'toggle-ime)
+
+
+
+;; C-s, C-r (インクリメンタルサーチ）
+(load-library "isearch")
+(load-library "isearch-deco")
+
+;装飾や色など
+(setq *coloring-pattern-hilight-match* '(:bold t :underline t :foreground 0 :background 1))
+
+;色つけに対してマッチした検索文字列の無視する長さ
+(setq *coloring-pattern-min-word-length* 2)
+
+;強調表示する方向を考えるか
+(setq *coloring-consider-direction* nil)
+
+;max limit of search and decorate match strings.
+;ある程度以上マッチしたらいちいち色つけ無い 数
+;(setq *coloring-number-limit* 20)
+;ある程度以上マッチしたらいちいち数えない
+;(setq *isearch-number-limit* 500)
+
+;色つけ処理しない。
+(setq *isearch-deco-ignore* nil)
+
+;色つけ処理しない バッファーサイズ（一定サイズ以上）。
+(setq *isearch-deco-ignore-buffer-size* (* 1024 500))
+
+;カーソル(キャレット)の側で情報を表示させるか *isearch-deco-ignore* が nil の時作用
+(setq *coloring-popup* nil)
+
+;isearch-decoで正規表現で検索しない
+(setq ed::*isearch-regexp* nil)
+
+(defvar *isearch-mode-pattern-func-list*
+      (list
+       ;(list "label"  regexp  case convert-func )
+       (list "normal" nil  nil nil )
+       (list "case-fold" nil  t nil )
+       (list "regexp" t nil nil)
+       (list "ambiguous" t nil 'convert-ambiguous-pattern)
+       (list "migemo" t nil 'migemo-query);migemo.lインストール後 migemo-offのまま使ってください。
+       (list "isearch-scanner-hook" t nil nil) ; listの最後はこれ
+       ))
+;関数は検索語を渡すと、検索パターンが返ってくればOK
+
+;(defvar *ambiguous-size* 2);曖昧度
+
+;検索終了後に色を残すか？  （isearch 中に M-r で解除）
+(setq *isearch-deco-refresh-p* t)	; 効かない……
+
+
+
+
+
+
+
+;; ページ送り、ページ戻し
+(global-set-key #\M-\, ' previous-page)
+(global-set-key #\M-. ' next-page)
+
+
+;; TABキーはTAB入力でしょjk
+(let ((keymap (make-sparse-keymap))) 
+(define-key keymap #\TAB 'self-insert-command) 
+(add-hook '*create-buffer-hook*
+		  #'(lambda (buffer)
+			  (set-minor-mode-map keymap buffer))))
+
+
+;; バックスペースでタブをしっかり消したい
+(undefine-key ed::*c-mode-map* #\C-h)
+(undefine-key ed::*c++-mode-map* #\C-h)
+(global-set-key #\C-h 'delete-backward-char-or-selection)
+
+;; 要らない機能外したい
+(undefine-key ed::*c-mode-map* #\:)
+(undefine-key ed::*c++-mode-map* #\:)
+
+
+;; toggle-source buffer-file-nameが定義されていませんと言われてしまう
+;(defun toggle-source ()
+;  (interactive)
+;
+;  ;; 現在バッファで開いているファイル名を取得する。
+;  (let ((ms '(lambda (str)
+;               (substring str (match-beginning 1)
+;                          (match-end 1)))))
+;    (when (buffer-file-name)
+;      (let ((prefix (progn
+;                      (string-match "^.+\\.\\(.+\\)$" (file-name-nondirectory (buffer-file-name)))
+;                      (funcall ms (file-name-nondirectory (buffer-file-name)))
+;                      ))
+;            (name (progn
+;                    (string-match "^\\(.+\\)\\." (file-name-nondirectory (buffer-file-name)))
+;                    (funcall ms (file-name-nondirectory (buffer-file-name)))
+;                    ))
+;            )
+;        ;; ファイル名とプレフィックスに基づいて調べる。
+;        (cond
+;         ((string-equal "h" prefix)
+;          (cond
+;           ((file-exists-p (concat name ".cpp"))
+;            (find-file (concat "./" name ".cpp")))
+;           ((file-exists-p (concat name ".c"))
+;            (find-file (concat "./" name ".c")))))
+;         ((or (string-equal "c" prefix)
+;              (string-equal "cpp" prefix))
+;          (if (file-exists-p (concat name ".h"))
+;              (find-file (concat name ".h"))))))
+;      )
+;    )
+;  )
+
+
+
+; c++モード用設定
+(defun my-setting-c++ ()
+
+  ;メインなインデント幅
+  (setq ed::c++-indent-level  4)
+  ;文やステートメントが ；で区切られずに続くとき(if文を{}で囲まないとき)
+  (setq ed::c++-continued-statement-offset  4)
+  ;括弧始まりの位置
+  (setq ed::c++-brace-offset -4)
+  ;閉じ括弧
+  (setq ed::c++-brace-imaginary-offset 0)
+  ;switchの   case文が { のインデントの位置から相対位置
+  (setq ed::c++-label-offset -4)
+  ;Java は関係ない？
+  (setq ed::c++-argdecl-indent 0)
+
+;  (abbrev-mode t)
+
+;  (define-key ed::*c++-mode-map* #\{ 'electric-brace-insert)
+;  (define-key ed::*c++-mode-map* #\( 'electric-brace-insert)
+;  (define-key ed::*c++-mode-map* #\[ 'electric-brace-insert)
+;  (define-key ed::*c++-mode-map* #\" 'electric-brace-insert)
+
+;  (define-key ed::*c++-mode-map* #\TAB 'c-indent-line)
+
+  (setq *c-tab-always-indent* t)
+  (setq *c++-indent-tabs-mode* t)
+  )
+
+(add-hook 'ed::*c++-mode-hook* ' my-setting-c++)
+
+;; タブを使う場合
+(setq indent-tabs-mode t)
+(setq *c++-indent-tabs-mode* t)
+
+
+; ファイラで全ファイル表示をデフォルトに
+;; 2 画面用
+(setq *filer-primary-file-mask* '("*"))
+(setq *filer-secondary-file-mask* '("*"))
+;; 1 画面用
+(setq *filer-last-file-mask* '("*"))
+
+
+
+;; ファイラ
+;; カーソルを一ページ分上へ移動します。
+(define-key filer-keymap #\M-\, 'filer-backward-page)
+
+;; カーソルを一ページ分下へ移動します。
+(define-key filer-keymap #\M-. 'filer-forward-page) 
+
+;; カーソルをウィンドウの先頭に移動します。
+(define-key filer-keymap #\M-< 'filer-goto-bof) 
+
+;; カーソルをウィンドウの最後に移動します。
+(define-key filer-keymap #\M-> 'filer-goto-eof) 
+
+
+;cppファイルとhファイルをいれかえるlisp。
+
+;.xyzzyにでも。
+
+;キーバインドのC-tは好きな物に変えてください。
+
+;cppファイルとhファイルが同名でない場合は、
+
+;// relation-file:"hoge.h"
+
+;などと書いておけば、そのファイルを開く。
+
+;既知のバグ。
+
+;「foge.h」が存在しなくてもバッファを作成してしまう。
+
+(define-key ed::*c++-mode-map* #\C-t 'change-source)
+
+(defun get-file-buffer-name (filename)
+  ; 渡されたファイル名のバッファがあればその名前を返す
+  (let ((targetbuffer (get-file-buffer filename)))
+	(if targetbuffer
+		(buffer-name targetbuffer))))
+
+(defun get-relation-file ()
+  ;; 関係しているファイルを得る
+  (save-excursion
+	(goto-char (point-min)) ;(beginning-of-buffer)のかわり。マーカに作用しない
+	(if (scan-buffer "relation-file:\"\\(.*\\)\"" :regexp t)
+		(match-string 1)
+	  (let ((name (buffer-name (selected-buffer))))
+		(string-match "\\(.*\\)\\.\\(.*\\)" name)
+		(if (equal "h" (match-string 2))
+			(format nil "~A.cpp" (match-string 1))
+		  (format nil "~A.h" (match-string 1)))))))
+
+(defun change-source ()
+  ;; cppファイルとhファイルをいれかえる
+  (interactive)
+  (let ((name (get-relation-file)))
+	(if name
+		(ed::find-file name)
+	  (message "ファイルが見つかりません"))))
+
+
+; リージョンのdiff
+(load-library "diff-region")
+
+
