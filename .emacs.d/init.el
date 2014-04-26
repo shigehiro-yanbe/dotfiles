@@ -77,3 +77,22 @@
              (c-set-offset 'innamespace 0)   ; namespace {}の中はインデントしない
              (c-set-offset 'arglist-close 0) ; 関数の引数リストの閉じ括弧はインデントしない
              ))
+
+;; TABキーはTAB入力でしょjk(xyzzy)
+;(let ((keymap (make-sparse-keymap))) 
+;(define-key keymap TAB 'self-insert-command)
+;(add-hook '*create-buffer-hook*
+;		  #'(lambda (buffer)
+;			  (set-minor-mode-map keymap buffer))))
+
+
+;; バックスペースでタブをしっかり消したい
+;(define-key c-mode-map ?\C-h nil)
+;(define-key c++-mode-map ?\C-h nil)
+;(global-set-key ?\C-h 'delete-backward-char-or-selection)
+
+;; 要らない機能外したい
+;(define-key c-mode-map ?\: nil)
+;(define-key c++-mode-map ?\: nil)
+
+
