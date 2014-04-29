@@ -14,6 +14,12 @@
 ;; C-oはIMEのon/off
 (global-set-key (kbd "C-o") 'toggle-input-method)
 
+;; メニューバーを非表示
+;;(menu-bar-mode 0)
+
+;; ツールバーを非表示
+(tool-bar-mode 0)
+
 ;; Mac OS Xの場合のファイル名の設定
 (when (eq system-type 'darwin)
   (require 'ucs-normalize)
