@@ -11,6 +11,10 @@
 ;(define-key global-map (kbd "C-x C-h") 'help-command)
 ;(define-key global-map (kbd "C-x DEL") 'help-command)
 
+;; pageup,pagedown
+(global-set-key (kbd "M-,") 'scroll-down-command)
+(global-set-key (kbd "M-.") 'scroll-up-command)
+
 ;; C-oはIMEのon/off
 (global-set-key (kbd "C-o") 'toggle-input-method)
 
@@ -78,6 +82,7 @@
 ;; C++ style
 (add-hook 'c++-mode-hook
           '(lambda()
+             (define-key c++-mode-map "\C-t" 'ff-find-other-file)	; ソース<->ヘッダ切り替え
              ;(c-set-style "stroustrup")
              (setq indent-tabs-mode t)       ; インデントはTABで
              (c-set-offset 'innamespace 0)   ; namespace {}の中はインデントしない
