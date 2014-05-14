@@ -3,3 +3,4 @@
 .DS_Store
 #init.el#
 .#init.el
+.emacs.d/.session
